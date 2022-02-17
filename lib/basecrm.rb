@@ -21,6 +21,7 @@ require 'basecrm/models/deal'
 require 'basecrm/models/deal_source'
 require 'basecrm/models/deal_unqualified_reason'
 require 'basecrm/models/lead'
+require 'basecrm/models/lead_conversion'
 require 'basecrm/models/lead_source'
 require 'basecrm/models/lead_unqualified_reason'
 require 'basecrm/models/line_item'
@@ -52,6 +53,7 @@ require 'basecrm/services/deals_service'
 require 'basecrm/services/deal_sources_service'
 require 'basecrm/services/deal_unqualified_reasons_service'
 require 'basecrm/services/leads_service'
+require 'basecrm/services/lead_conversions_service'
 require 'basecrm/services/lead_sources_service'
 require 'basecrm/services/lead_unqualified_reasons_service'
 require 'basecrm/services/line_items_service'
@@ -74,8 +76,7 @@ require 'basecrm/sync'
 
 module BaseCRM
   class Client
-    attr_reader :config
-    attr_reader :http_client
+    attr_reader :config, :http_client
 
     # Instantiate a new BaseCRM API V2 client
     #
@@ -93,7 +94,7 @@ module BaseCRM
     # @raise [ConfigurationError] if provided base url is invalid
     #
     # @return [Client] New client
-    def initialize(options={})
+    def initialize(options = {})
       @config = Configuration.new(options)
       @config.validate!
 
@@ -179,6 +180,15 @@ module BaseCRM
     # @return [LeadsService] Service object for  resources.
     def leads
       @leads ||= LeadsService.new(@http_client)
+    end
+
+    # Access all LeadConversions related actions.
+    # @see LeadConversionsService
+    # @see LeadConversion
+    #
+    # @return [LeadConversionsService] Service object for  resources.
+    def lead_conversions
+      @lead_conversions ||= LeadConversionsService.new(@http_client)
     end
 
     # Access all LeadSources related actions.
