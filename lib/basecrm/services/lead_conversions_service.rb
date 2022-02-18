@@ -2,7 +2,7 @@
 
 module BaseCRM
   class LeadConversionsService
-    OPTS_KEYS_TO_PERSIST = Set[:lead_id, :organization_id]
+    OPTS_KEYS_TO_PERSIST = Set[:lead_id, :organization_id, :create_deal]
 
     def initialize(client)
       @client = client
@@ -32,11 +32,10 @@ module BaseCRM
     # @option options [String] :sort_by (id:asc) A field to sort by. The **default** ordering is **ascending**. If you want to change the sort order to descending, append `:desc` to the field e.g. `sort_by=name:desc`.
     # @return [Array<LeadConversion>] The list of LeadConversions for the first page, unless otherwise specified.
     def where(options = {})
-      _, _, root = @client.get("/lead_conversions", options)
+      _, _, root = @client.get('/lead_conversions', options)
 
-      root[:items].map{ |item| LeadConversion.new(item[:data]) }
+      root[:items].map { |item| LeadConversion.new(item[:data]) }
     end
-
 
     # Create a new source
     #
@@ -53,11 +52,10 @@ module BaseCRM
       validate_type!(lead_source)
 
       attributes = sanitize(lead_source)
-      _, _, root = @client.post("/lead_conversions", attributes)
+      _, _, root = @client.post('/lead_conversions', attributes)
 
       LeadConversion.new(root[:data])
     end
-
 
     # Retrieve a single source
     #
@@ -73,7 +71,6 @@ module BaseCRM
 
       LeadConversion.new(root[:data])
     end
-
 
     # Update a source
     #
@@ -98,7 +95,6 @@ module BaseCRM
       LeadConversion.new(root[:data])
     end
 
-
     # Delete a source
     #
     # delete '/lead_conversions/{id}'
@@ -110,19 +106,23 @@ module BaseCRM
     # @param id [Integer] Unique identifier of a LeadConversion
     # @return [Boolean] Status of the operation.
     def destroy(id)
-      status, _, _ = @client.delete("/lead_conversions/#{id}")
+      status, = @client.delete("/lead_conversions/#{id}")
       status == 204
     end
 
+    private
 
-  private
     def validate_type!(lead_source)
       raise TypeError unless lead_source.is_a?(LeadConversion) || lead_source.is_a?(Hash)
     end
 
     def extract_params!(lead_source, *args)
-      params = lead_source.to_h.select{ |k, _| args.include?(k) }
-      raise ArgumentError, "one of required attributes is missing. Expected: #{args.join(',')}" if params.count != args.length
+      params = lead_source.to_h.select { |k, _| args.include?(k) }
+      if params.count != args.length
+        raise ArgumentError,
+              "one of required attributes is missing. Expected: #{args.join(',')}"
+      end
+
       params
     end
 
