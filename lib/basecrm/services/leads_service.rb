@@ -2,7 +2,11 @@
 
 module BaseCRM
   class LeadsService
-    OPTS_KEYS_TO_PERSIST = Set[:address, :custom_fields, :description, :email, :facebook, :fax, :first_name, :industry, :last_name, :linkedin, :mobile, :organization_name, :owner_id, :phone, :skype, :source_id, :status, :tags, :title, :twitter, :website]
+    OPTS_KEYS_TO_PERSIST = Set[:address, :custom_fields, :description, :email,
+                               :facebook, :fax, :first_name, :industry, :last_name, :linkedin,
+                               :mobile, :organization_name, :owner_id, :phone, :skype,
+                               :source_id, :status, :tags, :title, :twitter, :website,
+                               :unqualified_reason_id]
 
     def initialize(client)
       @client = client
@@ -41,11 +45,10 @@ module BaseCRM
     # @option options [String] :status Status of the lead.
     # @return [Array<Lead>] The list of Leads for the first page, unless otherwise specified.
     def where(options = {})
-      _, _, root = @client.get("/leads", options)
+      _, _, root = @client.get('/leads', options)
 
-      root[:items].map{ |item| Lead.new(item[:data]) }
+      root[:items].map { |item| Lead.new(item[:data]) }
     end
-
 
     # Create a lead
     #
@@ -60,11 +63,10 @@ module BaseCRM
       validate_type!(lead)
 
       attributes = sanitize(lead)
-      _, _, root = @client.post("/leads", attributes)
+      _, _, root = @client.post('/leads', attributes)
 
       Lead.new(root[:data])
     end
-
 
     # Retrieve a single lead
     #
@@ -80,7 +82,6 @@ module BaseCRM
 
       Lead.new(root[:data])
     end
-
 
     # Update a lead
     #
@@ -106,7 +107,6 @@ module BaseCRM
       Lead.new(root[:data])
     end
 
-
     # Delete a lead
     #
     # delete '/leads/{id}'
@@ -118,19 +118,23 @@ module BaseCRM
     # @param id [Integer] Unique identifier of a Lead
     # @return [Boolean] Status of the operation.
     def destroy(id)
-      status, _, _ = @client.delete("/leads/#{id}")
+      status, = @client.delete("/leads/#{id}")
       status == 204
     end
 
+    private
 
-  private
     def validate_type!(lead)
       raise TypeError unless lead.is_a?(Lead) || lead.is_a?(Hash)
     end
 
     def extract_params!(lead, *args)
-      params = lead.to_h.select{ |k, _| args.include?(k) }
-      raise ArgumentError, "one of required attributes is missing. Expected: #{args.join(',')}" if params.count != args.length
+      params = lead.to_h.select { |k, _| args.include?(k) }
+      if params.count != args.length
+        raise ArgumentError,
+              "one of required attributes is missing. Expected: #{args.join(',')}"
+      end
+
       params
     end
 
